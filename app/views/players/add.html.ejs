@@ -1,0 +1,22 @@
+<div class="hero-unit">
+  <form id="player-form" class="form-horizontal" action="/players" method="POST">
+    <fieldset>
+
+      <% if(params.errors) { %>
+      <div class="control-group">
+        <ul>
+        <% for(var err in params.errors) { %>
+          <li><%= params.errors[err]; %></li>
+        <% } %>
+        </ul>
+      </div>
+      <% } %>
+
+      <%- partial('form', {player: {}}) %>
+
+      <div class="form-actions">
+        <%- contentTag('input', 'Play', {type: 'submit', class: 'btn btn-primary'}) %>
+      </div>
+    </fieldset>
+  </form>
+</div>

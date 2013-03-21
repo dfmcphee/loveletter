@@ -1,0 +1,19 @@
+<div class="hero-unit">
+  <h2>All Rooms</h2>
+  <%- linkTo('Create a new Room', addRoomPath, {class: 'btn pull-right'}); %>
+</div>
+
+<div id="rooms-list">
+<% if (rooms) { %>
+<% for (var i = 0, ii = rooms.length; i < ii; i++) { %>
+  <div class="row list-item" id="room-<%= rooms[i].id; %>">
+    <div class="span8">
+      <h3><%- linkTo(rooms[i].name, roomPath(rooms[i].id)); %></h3>
+    </div>
+    <div class="span4">
+      <h3><i class="icon-list-alt"></i><%= rooms[i].id; %></h3>
+    </div>
+  </div>
+<% } %>
+<% } %>
+</div>

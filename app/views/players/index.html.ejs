@@ -1,0 +1,19 @@
+<div class="hero-unit">
+  <h2>All Players</h2>
+  <%- linkTo('Create a new Player', addPlayerPath, {class: 'btn pull-right'}); %>
+</div>
+
+<div id="players-list">
+<% if (players) { %>
+<% for (var i = 0, ii = players.length; i < ii; i++) { %>
+  <div class="row list-item" id="player-<%= players[i].id; %>">
+    <div class="span8">
+      <h3><%- linkTo(players[i].id, playerPath(players[i].id)); %></h3>
+    </div>
+    <div class="span4">
+      <h3><i class="icon-list-alt"></i><%= players[i].id; %></h3>
+    </div>
+  </div>
+<% } %>
+<% } %>
+</div>
