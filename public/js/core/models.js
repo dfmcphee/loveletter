@@ -70,6 +70,7 @@ var Room = function () {
     round: {type: 'int'},
     creator: {type: 'string'},
     started: {type: 'boolean'},
+    gameLog: {type: 'string'},
   });
 
   /*
@@ -189,6 +190,7 @@ var Room = function () {
 		}
 		
 		this.deck = deck;
+		this.gameLog = '';
 		this.table = [];
 		this.players = [];
 		this.waiting = [];
@@ -263,6 +265,8 @@ var Room = function () {
 			score: this.players[topPlayer].score
 		});
 		
+		this.log(this.players[topPlayer].name + ' won this round.');
+		
 		// Set turn to round winner
 		this.turn = topPlayer;
 		
@@ -273,6 +277,7 @@ var Room = function () {
 	    }
 		
 		geddy.io.sockets.in(this.id).emit('clearHand', { });
+		geddy.io.sockets.in(this.id).emit('clearTable', { });
 		
 		for (var i=0; i < this.players.length; i++) {
 			this.players[i].turn = false;
@@ -307,7 +312,9 @@ var Room = function () {
 			// Find the player and add it to their hand
 			var playerIndex = searchForIdInArray(player, this.players);
 			this.players[playerIndex].protection = true;
+			geddy.io.sockets.in(this.id).emit('protectPlayer', { player: player });
 			this.save();
+			this.log(this.players[playerIndex].name + ' played a handmaid and is now protected.');
 			this.nextTurn();
 		} else if (card.title === 'Prince') {
 			socket.emit('getPrinceAction', {card: card, player: player});
@@ -315,7 +322,11 @@ var Room = function () {
 			socket.emit('getKingAction', {card: card, player: player});
 		} else if (card.title === 'Princess') {
 			this.removePlayer(player);
+			var playerIndex = searchForIdInArray(player, this.players);
+		  	this.log(this.players[playerIndex].name + ' played the Princess.');
 		} else {
+			var playerIndex = searchForIdInArray(player, this.players);
+			this.log(this.players[playerIndex].name + ' played the Countess.');
 			this.nextTurn();
 		}
 	}
@@ -325,7 +336,7 @@ var Room = function () {
 			if (this.players[i].id === player) {
 				var removedPlayer = this.players.splice(i, 1);
 				this.waiting.push(removedPlayer[0]);
-				console.log('Player removed');
+				this.log(removedPlayer[0].name + ' was eliminated.');
 				geddy.io.sockets.in(this.id).emit('removePlayer', { player: removedPlayer[0].id, name: removedPlayer[0].name });
 			}
 		}
@@ -362,6 +373,7 @@ var Room = function () {
 		    
 		    if (this.players[this.turn].protection) {
 			    this.players[this.turn].protection = false;
+			    geddy.io.sockets.in(this.id).emit('unprotectPlayer', { player: this.players[this.turn].id });
 		    }
 		    
 		    // Save the room
@@ -404,7 +416,7 @@ var Room = function () {
 	}
 	
 	this.startGame = function() {
-		console.log('Starting game...');
+		this.log('Game started.');
 	
 	  	// Deal each player a card
 		for (var i=0; i < this.players.length; i++) {
@@ -438,7 +450,15 @@ var Room = function () {
 		this.started = false;
 		
 		this.save();
+		
+		this.log('Game ended.' + this.players[topPlayer] + ' wins.');
 		geddy.io.sockets.in(this.id).emit('endGame', { player: this.players[topPlayer] });
+	}
+	
+	this.log = function(message) {
+		this.gameLog += '<p>' + message + '</p>';
+		geddy.io.sockets.in(this.id).emit('updateLog', { log: this.gameLog });
+		this.save();
 	}
 };
 

@@ -24,6 +24,8 @@ geddy.io.sockets.on('connection', function (socket) {
   	socket.join(data.player);
   	
   	geddy.model.Room.first(data.room, function(err, room) {
+  		geddy.io.sockets.in(room.id).emit('updateLog', { log: room.gameLog });
+  		
   		socket.emit('clearPlayers', {});
   		
   		// Fill players list
@@ -122,6 +124,7 @@ geddy.io.sockets.on('connection', function (socket) {
   socket.on('guardAction', function (data) {
   	geddy.model.Room.first(data.room, function(err, room) {
   		// Check if player is in game
+  		var playerOne = searchForIdInArray(data.player, room.players);
 	  	var playerIndex = searchForIdInArray(data.selectedPlayer, room.players);
 
 	  	if (playerIndex !== false && room.players[playerIndex].protection === false) {
@@ -134,6 +137,8 @@ geddy.io.sockets.on('connection', function (socket) {
 				}
 			}
 	  		
+	  		room.log(room.players[playerOne].name + ' played a Guard and guessed ' + room.players[playerIndex].name + ' has a ' + data.selectedCard + '.');
+	  		
 	  		if (cardIndex) {
 	  			console.log('Correct guess!');
 		  		room.removePlayer(data.selectedPlayer);
@@ -141,7 +146,8 @@ geddy.io.sockets.on('connection', function (socket) {
 		  		room.nextTurn();
 	  		}
 	  	} else {
-		  		room.nextTurn();
+	  		room.log(room.players[playerOne].name + ' played a Guard and guessed ' + room.players[playerIndex].name + ' has a ' + data.selectedCard + ' but player is protected.');
+		  	room.nextTurn();
 	  	}
   	});
   });
@@ -150,12 +156,18 @@ geddy.io.sockets.on('connection', function (socket) {
   socket.on('priestAction', function (data) {
   	geddy.model.Room.first(data.room, function(err, room) {
   		// Check if player is in game and not protected
+	  	var playerOne = searchForIdInArray(data.player, room.players);
 	  	var playerIndex = searchForIdInArray(data.selectedPlayer, room.players);
-
+	  	
 	  	if (playerIndex !== false && room.players[playerIndex].protection === false) {
 	  		var card = room.players[playerIndex].hand[0];
-	  		socket.emit('showCard', {card: card});
+	  		room.log(room.players[playerOne].name + ' played a Priest and looked at ' + room.players[playerIndex].name + '\'s hand.');
+	  	} else {
+	  		room.log(room.players[playerOne].name + ' played a Priest but ' + room.players[playerIndex].name + ' is protected.');
+		  	card = false;
 	  	}
+	  	
+	  	socket.emit('showCard', {card: card});
 	  	room.nextTurn();
   	});
   });
@@ -172,6 +184,8 @@ geddy.io.sockets.on('connection', function (socket) {
 		  		var cardOne = room.players[playerOne].hand[0];
 		  		var cardTwo = room.players[playerTwo].hand[0];
 		  		
+		  		room.log(room.players[playerOne].name + ' played a Baron and compared hands with ' + room.players[playerTwo].name + '.');
+		  		
 		  		// Compare card values, remove the loser
 		  		if (cardTwo.value > cardOne.value) {
 			  		room.removePlayer(data.player, data.room);
@@ -179,8 +193,12 @@ geddy.io.sockets.on('connection', function (socket) {
 			  		room.removePlayer(data.selectedPlayer, data.room);
 		  		} else {
 			  		// or just skip to the next turn
+			  		room.log('Cards tie, neither discards.');
 			  		room.nextTurn();
 		  		}
+	  		} else {
+		  		room.log(room.players[playerOne].name + ' played a Baron but ' + room.players[playerTwo].name + ' is protected.');
+		  		room.nextTurn();
 	  		}
 	  	}
   	});
@@ -189,6 +207,7 @@ geddy.io.sockets.on('connection', function (socket) {
   // Event when a player completes prince action
   socket.on('princeAction', function (data) {
   	geddy.model.Room.first(data.room, function(err, room) {
+  		var playerOne = searchForIdInArray(data.player, room.players);
 	  	var playerIndex = searchForIdInArray(data.selectedPlayer, room.players);
 	  	var eliminated = false;
 	  	
@@ -201,7 +220,10 @@ geddy.io.sockets.on('connection', function (socket) {
 	  		} else {
 		  		room.players[playerIndex].hand = [];
 		  		room.drawCard(data.selectedPlayer);
+		  		room.log(room.players[playerOne].name + ' played a Prince and made ' + room.players[playerIndex].name + ' discard his/her hand.');
 	  		}
+	  	} else {
+		  	room.log(room.players[playerOne].name + ' played a Prince but ' + room.players[playerIndex].name + ' is protected.');
 	  	}
 	  	
 	  	if (!eliminated) {
@@ -230,7 +252,12 @@ geddy.io.sockets.on('connection', function (socket) {
 		  		
 		  		geddy.io.sockets.in(data.selectedPlayer).emit('clearHand', { });
 		  		geddy.io.sockets.in(data.selectedPlayer).emit('deal', { card: cardOne });
+		  		
+		  		room.log(room.players[playerOne].name + ' played a King and swapped hands with ' + room.players[playerTwo].name + '.');
 	  		}
+	  		else {
+			  	room.log(room.players[playerOne].name + ' played a King but ' + room.players[playerTwo].name + ' is protected.');
+		  	}
 	  	}
 	  	room.nextTurn();
   	});

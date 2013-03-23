@@ -1,12 +1,9 @@
 <div class="row well">
-	<div class="span6">
+	<div class="span12">
 	  <h2 class="name"><%= room.name %></h2>
 	  <% if (!room.started && room.creator === player) { %>
 	  	<a id="start-game" class="btn btn-info">Start Game</a>
 	  <% } %>
-	</div>
-	<div class="span6">
-	  <p class="lead pull-right">Round: <span id="round-num"><%= room.round %></span></p>
 	</div>
 </div>
 
@@ -57,6 +54,17 @@
 				</div>
 			</div>
 		</div>
+		<div class="well">
+			<div class="row">
+				<div class="span12">
+					<h2>Log</h2>
+				</div>
+			</div>
+			<div class="row">
+				<div id="game-log" class="span12">
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
  
@@ -88,22 +96,6 @@
 	  </div>
 	  <div class="modal-footer">
 	    <button class="btn btn-primary">Select</button>
-	  </div>
-  </div>
-</div>
-
-<!-- Player Eliminated Modal -->
-<div id="player-eliminated-modal" class="modal fade">
-  <div class="modal-content">
-	  <div class="modal-header">
-	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-	    <h3 class="modal-title">Player has been elminated</h3>
-	  </div>
-	  <div class="modal-body">
-	    <p><span class="player-name"></span> was eliminated.</p>
-	  </div>
-	  <div class="modal-footer">
-	    <button type="button" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
 	  </div>
   </div>
 </div>

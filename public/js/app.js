@@ -182,7 +182,11 @@ function addPlayer(player) {
 			}
 		}
 		display += '">';
-		display += '<span class="lead">' + player.name + '</span>';
+		display += '<span class="lead">' 
+		if (player.protection) {
+			display += '<i class="icon icon-lock"></i> ';
+		}
+		display += player.name + '</span>';
 		display += '<span class="badge pull-right">' + player.score + '</span>';
 		display += '</div>';
 		$('#players').append(display);
@@ -225,6 +229,10 @@ socket.on('clearPlayers', function (data) {
 	$('#players').html('');
 });
 
+socket.on('clearTable', function (data) {
+	$('#table').html('');
+});
+
 socket.on('clearHand', function (data) {
 	$('#hand').html('');
 });
@@ -240,6 +248,11 @@ socket.on('updatePlayers', function (data) {
 	for (var i=0; i < data.players.length; i++) {
 		addPlayer(data.players[i]);
 	}
+});
+
+socket.on('updateLog', function (data) {
+	$('#game-log').html(data.log);
+	$("#game-log").scrollTop($("#game-log")[0].scrollHeight);
 });
 
 socket.on('gameStarted', function (data) {
@@ -316,7 +329,11 @@ socket.on('getPriestAction', function (data) {
 });
 
 socket.on('showCard', function (data) {
-	var cardDisplay = getCardDisplay(data.card);
+	if (data.card !== false) {
+		var cardDisplay = getCardDisplay(data.card);
+	} else {
+		cardDisplay = '<p class="lead">The player is protected, you cannot see their card.</p>';
+	}
 	$('#player-selection-modal .player-selection').html(cardDisplay);
 });
 
@@ -369,4 +386,12 @@ socket.on('getKingAction', function (data) {
 	
 	$('#player-selection-modal .player-selection').html(content);
 	$('#player-selection-modal .btn-primary').show();
+});
+
+socket.on('protectPlayer', function (data) {
+	$('#player-' + data.player + ' .lead').prepend('<i class="icon icon-lock"></i> ');
+});
+
+socket.on('unprotectPlayer', function (data) {
+	$('#player-' + data.player + ' .icon-lock').remove();
 });
