@@ -49,7 +49,11 @@ var Rooms = function () {
         
     if (user) {
 	    geddy.model.Room.first(params.id, function(err, room) {
-	      self.respond({params: params, room: room.toObj(), player: user});
+	     if (typeof(room) !== undefined) {
+	      	self.respond({params: params, room: room.toObj(), player: user});
+	      } else {
+		    self.redirect({controller: self.name});
+	      }
 	    });
     } else {
 	    this.redirect({controller: 'players', action: 'add'});

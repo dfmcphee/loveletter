@@ -61,19 +61,19 @@ var hand = [];
 var selectedCard = null;
 
 // Button to start game
-$('#start-game').live('click touchstart touchend', function(e) {
+$('#start-game').live('click touchend', function(e) {
 	socket.emit('startGame', { room: roomId });
 	$(this).hide();
 });
 
 // Select a card
-$('#hand .card').live('click touchstart touchend', function(e) {
+$('#hand .card').live('click touchend', function(e) {
 	$('#hand .card').removeClass('selected');
 	$(this).addClass('selected');
 });
 
 // Play a card
-$('#playCard').live('click touchstart touchend', function(e) {
+$('#playCard').live('click touchend', function(e) {
 	var cardId = $('#hand .card.selected').attr('card');
 
 	var handIndex = searchForIdInArray(cardId, hand);
@@ -100,17 +100,17 @@ $('#playCard').live('click touchstart touchend', function(e) {
 });
 
 // Events to guess a card
-$('#guess-card-modal .player-selection .btn-player').live('click touchstart touchend', function(e) {
+$('#guess-card-modal .player-selection .btn-player').live('click touchend', function(e) {
 	$('#guess-card-modal .player-selection .btn-player').removeClass('btn-info');
 	$(this).addClass('btn-info');
 });
 
-$('#guess-card-modal .card-selection .btn-card').live('click touchstart touchend', function(e) {
+$('#guess-card-modal .card-selection .btn-card').live('click touchend', function(e) {
 	$('#guess-card-modal .card-selection .btn-card').removeClass('btn-info');
 	$(this).addClass('btn-info');
 });
 
-$('#guess-card-modal .btn-primary').live('click touchstart touchend', function(e) {
+$('#guess-card-modal .btn-primary').live('click touchend', function(e) {
 	var selectedPlayer = $('#guess-card-modal .player-selection .btn-info').attr('data-player-id');
 	var selectedCard = $('#guess-card-modal .card-selection .btn-info').attr('data-card-id');
 	
@@ -122,12 +122,12 @@ $('#guess-card-modal .btn-primary').live('click touchstart touchend', function(e
 });
 
 // Events to select a player
-$('#player-selection-modal .player-selection .btn-player').live('click touchstart touchend', function(e) {
+$('#player-selection-modal .player-selection .btn-player').live('click touchend', function(e) {
 	$('#player-selection-modal .player-selection .btn-player').removeClass('btn-info');
 	$(this).addClass('btn-info');
 });
 
-$('#player-selection-modal .btn-primary').live('click touchstart touchend', function(e) {
+$('#player-selection-modal .btn-primary').live('click touchend', function(e) {
 	var selectedPlayer = $('#player-selection-modal .player-selection .btn-info').attr('data-player-id');
 	
 	var action = $('#player-selection-modal').attr('data-action');
@@ -157,9 +157,9 @@ function startTurn(player){
 }
 
 function getCardDisplay(card) {
-	var display = '<div class="card well span8">'
-	display += '<h3>' + card.value + '- ' + card.title + '</h3>';
-	display += '<p class="lead">' + card.text + '</p>';
+	var display = '<div class="well span8">'
+	display += '<h4>' + card.value + '- ' + card.title + '</h4>';
+	display += '<p>' + card.text + '</p>';
 	display += '</div>';
 	
 	return display;
@@ -198,8 +198,8 @@ function drawCard(card) {
 	hand.push(card);
 	
 	var display = '<div card="' + card.id + '" class="card well span3">'
-	display += '<h3>' + card.value + '- ' + card.title + '</h3>';
-	display += '<p class="lead">' + card.text + '</p>';
+	display += '<h4>' + card.title + '<span class="pull-right">' + card.value + '</span></h4>';
+	display += '<p>' + card.text + '</p>';
 	display += '</div>';
 	$('#hand').append(display);
 }
@@ -250,6 +250,14 @@ socket.on('updatePlayers', function (data) {
 	}
 });
 
+socket.on('updateCardCounts', function (data) {
+	var counts = '';
+	for (x in data.cardCounts) {
+	  counts = counts + '<p>' + x + ' <span class="badge pull-right">' + data.cardCounts[x] + '</span></p>';
+	}
+	$('#played-cards').html(counts);
+});
+
 socket.on('updateLog', function (data) {
 	$('#game-log').html(data.log);
 	$("#game-log").scrollTop($("#game-log")[0].scrollHeight);
@@ -282,8 +290,14 @@ socket.on('nextRound', function (data) {
 socket.on('removePlayer', function (data) {
 	$('#player-' + data.player ).fadeOut();
 	var notification = '<div class="alert"><button type="button" class="close" data-dismiss="alert">&times;</button>';
-	notification += '<p>' + data.name + ' was eliminated.</p></div>';	
+	notification += '<p>' + data.name + ' was eliminated.</p></div>';
+	if (playerId === data.player) {
+		$('#hand').html('');
+	}
 	$('#alerts').html(notification);
+	
+	var playerIndex = searchForIdInArray(data.player, players);
+	players.splice(playerIndex, 1);
 });
 
 // Card actions

@@ -33,6 +33,9 @@ geddy.io.sockets.on('connection', function (socket) {
 	  		socket.emit('addPlayer', {player: room.players[i]});
   		}
   		
+  		// Update card counts
+  		socket.emit('updateCardCounts', {cardCounts: room.cardCounts});
+  		
   		// Find player in room
   		var playerIndex = searchForIdInArray(data.player, room.players);
 		
@@ -110,6 +113,10 @@ geddy.io.sockets.on('connection', function (socket) {
 	  	
 	  	// Add it to the table
 	    room.table.push(card);
+	    
+	    // update card counts
+	    room.cardCounts[card.title] += 1;
+	    geddy.io.sockets.in(data.room).emit('updateCardCounts', {cardCounts: room.cardCounts});
 	    
 	    // and activate its ability
 	    room.activateAbility(card, data.player, socket);

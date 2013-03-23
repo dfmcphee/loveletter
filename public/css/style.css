@@ -8,6 +8,11 @@
 	margin-left: 2%;
 }
 
+#table .well.card {
+	width: 81%;
+	margin-right: 36px;
+}
+
 #player-selection-modal .card.well {
 	float: none;
 }
@@ -19,4 +24,8 @@
 #game-log {
 	height: 150px;
 	overflow-y: scroll;
+}
+
+.hidden {
+	display:none;
 }

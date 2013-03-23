@@ -15,6 +15,7 @@ var Room = function () {
     waiting: {type: 'array'},
     deck: {type: 'array' },
     table: {type: 'array'},
+    cardCounts: {type: 'object'},
     turn: {type: 'int'},
     round: {type: 'int'},
     creator: {type: 'string'},
@@ -145,6 +146,16 @@ var Room = function () {
 		this.waiting = [];
 		this.started = false;
 		this.round = 1;
+		this.cardCounts = {
+			Guard: 0,
+			Priest: 0,
+			Baron: 0,
+			Handmaid: 0,
+			Prince: 0,
+			King: 0,
+			Countess: 0,
+			Princess: 0
+		};
 	}
 	
 	this.finishRound = function(){
@@ -189,6 +200,19 @@ var Room = function () {
 		
 		this.deck = deck;
 		this.table = [];
+		
+		this.cardCounts = {
+			Guard: 0,
+			Priest: 0,
+			Baron: 0,
+			Handmaid: 0,
+			Prince: 0,
+			King: 0,
+			Countess: 0,
+			Princess: 0
+		};
+		
+		geddy.io.sockets.in(this.id).emit('updateCardCounts', {cardCounts: this.cardCounts});
 		
 		var topPlayer = 0;
 		var topValue = this.players[0].hand[0].value;
@@ -381,6 +405,7 @@ var Room = function () {
 		var firstPlayer = this.players[0];
 		var roomId = this.id;
 		
+		// Save this room
 		this.save(function (err, data) {
 			if (err) {
 				console.log(err);
