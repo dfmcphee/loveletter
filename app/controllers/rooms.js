@@ -29,6 +29,8 @@ var Rooms = function () {
 	      , room = geddy.model.Room.create(params);
 	      
 	    room.initialize();
+	    
+	    room.creator = user;
 	
 	    room.save(function(err, data) {
 	      if (err) {
@@ -44,7 +46,7 @@ var Rooms = function () {
   this.show = function (req, resp, params) {
     var self = this;
     var user = self.session.get('user');
-    
+        
     if (user) {
 	    geddy.model.Room.first(params.id, function(err, room) {
 	      self.respond({params: params, room: room.toObj(), player: user});

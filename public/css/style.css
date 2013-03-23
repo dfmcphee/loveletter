@@ -2,6 +2,16 @@
 	background: #ddd;
 }
 
+.card.well {
+	float: left;
+	width: 39%;
+	margin-left: 2%;
+}
+
+#player-selection-modal .card.well {
+	float: none;
+}
+
 .player.selected {
 	background: #ddd;
 }

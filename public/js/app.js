@@ -50,53 +50,99 @@ cards = {
 	}
 };
 
-var socket = io.connect('http://localhost');
+if (hostname) {
+	var socket = io.connect('http://' + hostname);
+}
 
 var players = [];
-
-$('#hand .card').live('click', function(e) {
-	$('#hand .card').removeClass('selected');
-	$(this).addClass('selected');
-});
-
-$('#player-selection .btn-player').live('click', function(e) {
-	$('#player-selection .btn-player').removeClass('btn-info');
-	$(this).addClass('btn-info');
-});
-
-$('#card-selection .btn-card').live('click', function(e) {
-	$('#card-selection .btn-card').removeClass('btn-info');
-	$(this).addClass('btn-info');
-});
-
-$('#player-selection-modal .btn-primary').live('click', function(e) {
-	var selectedPlayer = $('#player-selection .btn-info').attr('data-player-id');
-	var selectedCard = $('#card-selection .btn-info').attr('data-card-id');
-	
-	if (selectedPlayer && selectedCard) {
-		socket.emit('guardAction', { room: roomId, player: playerId, selectedPlayer: selectedPlayer, selectedCard: selectedCard });
-	}
-	
-	$('#player-selection-modal').modal('hide');
-});
-
-$('#playCard').live('click', function(e) {
-	var cardIndex = $('#hand .card.selected').attr('card');
-	$('#hand .card.selected').remove();
-	var handIndex = searchForIdInArray(cardIndex, hand);
-	var card = hand[handIndex];
-	hand.splice(handIndex, 1);
-	socket.emit('playCard', { card: card, room: roomId, player: playerId });
-});
-
-$('#drawCard').live('click', function(e) {
-	socket.emit('drawCard', { room: roomId, player: playerId });
-});
 
 var hand = [];
 
 var selectedCard = null;
 
+// Button to start game
+$('#start-game').live('click touchstart touchend', function(e) {
+	socket.emit('startGame', { room: roomId });
+	$(this).hide();
+});
+
+// Select a card
+$('#hand .card').live('click touchstart touchend', function(e) {
+	$('#hand .card').removeClass('selected');
+	$(this).addClass('selected');
+});
+
+// Play a card
+$('#playCard').live('click touchstart touchend', function(e) {
+	var cardId = $('#hand .card.selected').attr('card');
+
+	var handIndex = searchForIdInArray(cardId, hand);
+	var card = hand[handIndex];
+	var legal = true;
+	
+	if (card.value === 5 || card.value === 6) {
+		for (var i=0; i < hand.length; i++) {
+			if (hand[i].value === 7) {
+				legal = false;
+			}
+		}
+	}
+	
+	if (card && legal) {
+		$('#hand .card.selected').remove();
+		hand.splice(handIndex, 1);
+		socket.emit('playCard', { card: card, room: roomId, player: playerId });
+	} else {
+		var notification = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button>';
+		notification += '<p>You must discard your Countess.</p></div>';	
+		$('#alerts').html(notification);	
+	}
+});
+
+// Events to guess a card
+$('#guess-card-modal .player-selection .btn-player').live('click touchstart touchend', function(e) {
+	$('#guess-card-modal .player-selection .btn-player').removeClass('btn-info');
+	$(this).addClass('btn-info');
+});
+
+$('#guess-card-modal .card-selection .btn-card').live('click touchstart touchend', function(e) {
+	$('#guess-card-modal .card-selection .btn-card').removeClass('btn-info');
+	$(this).addClass('btn-info');
+});
+
+$('#guess-card-modal .btn-primary').live('click touchstart touchend', function(e) {
+	var selectedPlayer = $('#guess-card-modal .player-selection .btn-info').attr('data-player-id');
+	var selectedCard = $('#guess-card-modal .card-selection .btn-info').attr('data-card-id');
+	
+	if (selectedPlayer && selectedCard) {
+		socket.emit('guardAction', { room: roomId, player: playerId, selectedPlayer: selectedPlayer, selectedCard: selectedCard });
+	}
+	
+	$('#guess-card-modal').modal('hide');
+});
+
+// Events to select a player
+$('#player-selection-modal .player-selection .btn-player').live('click touchstart touchend', function(e) {
+	$('#player-selection-modal .player-selection .btn-player').removeClass('btn-info');
+	$(this).addClass('btn-info');
+});
+
+$('#player-selection-modal .btn-primary').live('click touchstart touchend', function(e) {
+	var selectedPlayer = $('#player-selection-modal .player-selection .btn-info').attr('data-player-id');
+	
+	var action = $('#player-selection-modal').attr('data-action');
+	
+	if (selectedPlayer) {
+		socket.emit(action, { room: roomId, player: playerId, selectedPlayer: selectedPlayer});
+	}
+	
+	if (action !== 'priestAction') {
+		$('#player-selection-modal').modal('hide');
+	}
+	else {
+		$('#player-selection-modal .btn-primary').hide();
+	}
+});
 
 function startTurn(player){
 	$('.player').removeClass('selected');
@@ -110,12 +156,18 @@ function startTurn(player){
 	}
 }
 
-function playCard(card) {
+function getCardDisplay(card) {
 	var display = '<div class="card well span8">'
 	display += '<h3>' + card.value + '- ' + card.title + '</h3>';
 	display += '<p class="lead">' + card.text + '</p>';
 	display += '</div>';
-	$('#table').html(display);
+	
+	return display;
+}
+
+function playCard(card) {
+	var cardDisplay = getCardDisplay(card);
+	$('#table').html(cardDisplay);
 }
 
 function addPlayer(player) {
@@ -130,7 +182,8 @@ function addPlayer(player) {
 			}
 		}
 		display += '">';
-		display += '<h3>' + player.name + '- Score: ' + player.score + '</h3>';
+		display += '<span class="lead">' + player.name + '</span>';
+		display += '<span class="badge pull-right">' + player.score + '</span>';
 		display += '</div>';
 		$('#players').append(display);
 	}
@@ -140,7 +193,7 @@ function drawCard(card) {
 	// Add card to hand
 	hand.push(card);
 	
-	var display = '<div card="' + card.id + '" class="card well span8">'
+	var display = '<div card="' + card.id + '" class="card well span3">'
 	display += '<h3>' + card.value + '- ' + card.title + '</h3>';
 	display += '<p class="lead">' + card.text + '</p>';
 	display += '</div>';
@@ -161,7 +214,10 @@ socket.on('deal', function (data) {
 
 socket.on('playerPlayed', function (data) {
 	playCard(data.card);
-	startTurn(data.player);
+});
+
+socket.on('updateScore', function (data) {
+	$('#player-' + data.player + ' .badge').html(data.score);
 });
 
 socket.on('clearPlayers', function (data) {
@@ -177,8 +233,28 @@ socket.on('addPlayer', function (data) {
 	addPlayer(data.player);
 });
 
-socket.on('startGame', function (data) {
+socket.on('updatePlayers', function (data) {
+	players = [];
+	$('#players').html('');
+	
+	for (var i=0; i < data.players.length; i++) {
+		addPlayer(data.players[i]);
+	}
+});
+
+socket.on('gameStarted', function (data) {
 	startTurn(data.player);
+});
+
+socket.on('endGame', function (data) {
+	$('#hand').html('');
+	$('#table').html('');
+	
+	var notification = '<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">&times;</button>';
+	notification += '<p>' + data.player.name + ' wins!</p></div>';	
+	$('#alerts').html(notification);
+	
+	$('#start-game').show();
 });
 
 socket.on('startTurn', function (data) {
@@ -192,12 +268,14 @@ socket.on('nextRound', function (data) {
 
 socket.on('removePlayer', function (data) {
 	$('#player-' + data.player ).fadeOut();
-	$('#player-eliminated-modal').modal('show');
-	$('#player-eliminated-modal .player-name').html(data.name);
+	var notification = '<div class="alert"><button type="button" class="close" data-dismiss="alert">&times;</button>';
+	notification += '<p>' + data.name + ' was eliminated.</p></div>';	
+	$('#alerts').html(notification);
 });
 
+// Card actions
 socket.on('getGuardAction', function (data) {
-	$('#player-selection-modal').modal('show');
+	$('#guess-card-modal').modal('show');
 	
 	var content = '';
 	for (var i=0; i < players.length; i++) {
@@ -207,7 +285,8 @@ socket.on('getGuardAction', function (data) {
 			content += players[i].name + '</a>';
 		}
 	}
-	$('#player-selection').html(content);
+	
+	$('#guess-card-modal .player-selection').html(content);
 	
 	content = '';
 	for (var key in cards) {
@@ -215,6 +294,79 @@ socket.on('getGuardAction', function (data) {
 		content += 'data-card-id="' + cards[key].title + '">' 
 		content += cards[key].title + '</a>';
 	}
-	$('#card-selection').html(content);
 	
+	$('#guess-card-modal .card-selection').html(content);
+});
+
+socket.on('getPriestAction', function (data) {
+	$('#player-selection-modal').modal('show');
+	$('#player-selection-modal').attr('data-action', 'priestAction');
+	
+	var content = '';
+	for (var i=0; i < players.length; i++) {
+		if (players[i].id != playerId) {
+			content += '<a class="btn btn-player" ';
+			content += 'data-player-id="' + players[i].id + '">' 
+			content += players[i].name + '</a>';
+		}
+	}
+	
+	$('#player-selection-modal .player-selection').html(content);
+	$('#player-selection-modal .btn-primary').show();
+});
+
+socket.on('showCard', function (data) {
+	var cardDisplay = getCardDisplay(data.card);
+	$('#player-selection-modal .player-selection').html(cardDisplay);
+});
+
+socket.on('getBaronAction', function (data) {
+	$('#player-selection-modal').modal('show');
+	$('#player-selection-modal').attr('data-action', 'baronAction');
+	
+	var content = '';
+	for (var i=0; i < players.length; i++) {
+		if (players[i].id != playerId) {
+			content += '<a class="btn btn-player" ';
+			content += 'data-player-id="' + players[i].id + '">' 
+			content += players[i].name + '</a>';
+		}
+	}
+	
+	$('#player-selection-modal .player-selection').html(content);
+	$('#player-selection-modal .btn-primary').show();
+});
+
+socket.on('getPrinceAction', function (data) {
+	$('#player-selection-modal').modal('show');
+	$('#player-selection-modal').attr('data-action', 'princeAction');
+	
+	var content = '';
+	for (var i=0; i < players.length; i++) {
+		if (players[i].id != playerId) {
+			content += '<a class="btn btn-player" ';
+			content += 'data-player-id="' + players[i].id + '">' 
+			content += players[i].name + '</a>';
+		}
+	}
+	
+	$('#player-selection-modal .player-selection').html(content);
+	$('#player-selection-modal .btn-primary').show();
+});
+
+socket.on('getKingAction', function (data) {
+	$('#player-selection-modal').modal('show');
+	$('#player-selection-modal').attr('data-action', 'kingAction');
+	
+	var content = '';
+	for (var i=0; i < players.length; i++) {
+		if (players[i].id != playerId) {
+			content += '<a class="btn btn-player" ';
+			content += 'data-player-id="' + players[i].id + '">' 
+			content += players[i].name + '</a>';
+		}
+	}
+	
+	$('#player-selection-modal .player-selection').html(content);
+	$('#player-selection-modal .btn-primary').show();
 });
