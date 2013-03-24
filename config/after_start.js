@@ -50,7 +50,7 @@ geddy.io.sockets.on('connection', function (socket) {
   		}
    		
    		// If player is not yet in room
-	  	if (playerIndex === false && room.players.length < 4) {
+	  	if (playerIndex === false && room.players.length < 4 && !room.started) {
 	  		// Find the player
 		  	geddy.model.Player.first(data.player, function(err, player) {
 		  		// Initialize it for room

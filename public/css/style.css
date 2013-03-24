@@ -1,24 +1,29 @@
 #hand .card.selected {
-	background: #ddd;
+	-webkit-box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.3);
+	box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.3);
 }
 
-.card.well {
+.card {
 	float: left;
-	width: 39%;
+	width: 30%;
 	margin-left: 2%;
 }
 
-#table .well.card {
+#table .card {
 	width: 81%;
 	margin-right: 36px;
 }
 
-#player-selection-modal .card.well {
+#player-selection-modal .card {
 	float: none;
 }
 
 .player.selected {
 	background: #ddd;
+}
+
+#hand-controls {
+	margin-top: 15px;
 }
 
 #game-log {

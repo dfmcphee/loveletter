@@ -74,7 +74,7 @@ $('#hand .card').live('click touchend', function(e) {
 
 // Play a card
 $('#playCard').live('click touchend', function(e) {
-	var cardId = $('#hand .card.selected').attr('card');
+	var cardId = $('#hand .card.selected').attr('data-card-id');
 
 	var handIndex = searchForIdInArray(cardId, hand);
 	var card = hand[handIndex];
@@ -116,9 +116,9 @@ $('#guess-card-modal .btn-primary').live('click touchend', function(e) {
 	
 	if (selectedPlayer && selectedCard) {
 		socket.emit('guardAction', { room: roomId, player: playerId, selectedPlayer: selectedPlayer, selectedCard: selectedCard });
+		
+		$('#guess-card-modal').modal('hide');
 	}
-	
-	$('#guess-card-modal').modal('hide');
 });
 
 // Events to select a player
@@ -134,13 +134,13 @@ $('#player-selection-modal .btn-primary').live('click touchend', function(e) {
 	
 	if (selectedPlayer) {
 		socket.emit(action, { room: roomId, player: playerId, selectedPlayer: selectedPlayer});
-	}
-	
-	if (action !== 'priestAction') {
-		$('#player-selection-modal').modal('hide');
-	}
-	else {
-		$('#player-selection-modal .btn-primary').hide();
+		
+		if (action !== 'priestAction') {
+			$('#player-selection-modal').modal('hide');
+		}
+		else {
+			$('#player-selection-modal .btn-primary').hide();
+		}
 	}
 });
 
@@ -157,9 +157,10 @@ function startTurn(player){
 }
 
 function getCardDisplay(card) {
-	var display = '<div class="well span8">'
-	display += '<h4>' + card.value + '- ' + card.title + '</h4>';
-	display += '<p>' + card.text + '</p>';
+	var display = '<div data-card-id="' + card.id + '" class="card span4" ';
+	display += ' data-toggle="popover" title="" data-content="';
+	display += card.text + '" data-original-title="Card Ability" data-trigger="hover">';
+	display += '<img src="/img/' + card.title + '.png" />';
 	display += '</div>';
 	
 	return display;
@@ -168,6 +169,7 @@ function getCardDisplay(card) {
 function playCard(card) {
 	var cardDisplay = getCardDisplay(card);
 	$('#table').html(cardDisplay);
+	$('#table .card').popover({delay: { show: 500, hide: 100 }});
 }
 
 function addPlayer(player) {
@@ -197,11 +199,11 @@ function drawCard(card) {
 	// Add card to hand
 	hand.push(card);
 	
-	var display = '<div card="' + card.id + '" class="card well span3">'
-	display += '<h4>' + card.title + '<span class="pull-right">' + card.value + '</span></h4>';
-	display += '<p>' + card.text + '</p>';
-	display += '</div>';
+	var display = getCardDisplay(card);
+	
 	$('#hand').append(display);
+	
+	$('#hand .card').popover({delay: { show: 500, hide: 100 }});
 }
 
 socket.on('connect', function () {
@@ -234,6 +236,7 @@ socket.on('clearTable', function (data) {
 });
 
 socket.on('clearHand', function (data) {
+	hand = [];
 	$('#hand').html('');
 });
 
@@ -339,6 +342,8 @@ socket.on('getPriestAction', function (data) {
 	}
 	
 	$('#player-selection-modal .player-selection').html(content);
+	$('#player-selection-modal .close').hide();
+	$('#player-selection-modal .modal-title').html('Choose a player.');
 	$('#player-selection-modal .btn-primary').show();
 });
 
@@ -348,7 +353,9 @@ socket.on('showCard', function (data) {
 	} else {
 		cardDisplay = '<p class="lead">The player is protected, you cannot see their card.</p>';
 	}
+	$('#player-selection-modal .modal-title').html('Player\'s card');
 	$('#player-selection-modal .player-selection').html(cardDisplay);
+	$('#player-selection-modal .close').show();
 });
 
 socket.on('getBaronAction', function (data) {
@@ -365,6 +372,8 @@ socket.on('getBaronAction', function (data) {
 	}
 	
 	$('#player-selection-modal .player-selection').html(content);
+	$('#player-selection-modal .close').hide();
+	$('#player-selection-modal .modal-title').html('Choose a player.');
 	$('#player-selection-modal .btn-primary').show();
 });
 
@@ -382,6 +391,8 @@ socket.on('getPrinceAction', function (data) {
 	}
 	
 	$('#player-selection-modal .player-selection').html(content);
+	$('#player-selection-modal .close').hide();
+	$('#player-selection-modal .modal-title').html('Choose a player.');
 	$('#player-selection-modal .btn-primary').show();
 });
 
@@ -399,6 +410,8 @@ socket.on('getKingAction', function (data) {
 	}
 	
 	$('#player-selection-modal .player-selection').html(content);
+	$('#player-selection-modal .close').hide();
+	$('#player-selection-modal .modal-title').html('Choose a player.');
 	$('#player-selection-modal .btn-primary').show();
 });
 
