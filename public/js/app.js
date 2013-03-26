@@ -268,11 +268,13 @@ socket.on('updateLog', function (data) {
 
 socket.on('gameStarted', function (data) {
 	startTurn(data.player);
+	$('#players .badge').html('0');
 });
 
 socket.on('endGame', function (data) {
 	$('#hand').html('');
 	$('#table').html('');
+	$('#played-cards .badge').html('0');
 	
 	var notification = '<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">&times;</button>';
 	notification += '<p>' + data.player.name + ' wins!</p></div>';	
@@ -287,6 +289,7 @@ socket.on('startTurn', function (data) {
 
 socket.on('nextRound', function (data) {
 	$('#round-num').html(data.round);
+	$('.icon-lock').remove();
 	$('#table').html('');
 });
 
@@ -320,9 +323,11 @@ socket.on('getGuardAction', function (data) {
 	
 	content = '';
 	for (var key in cards) {
-		content += '<a class="btn btn-card" ';
-		content += 'data-card-id="' + cards[key].title + '">' 
-		content += cards[key].title + '</a>';
+		if (cards[key].value !== 1) {
+			content += '<a class="btn btn-card" ';
+			content += 'data-card-id="' + cards[key].title + '">' 
+			content += cards[key].title + '</a>';
+		}
 	}
 	
 	$('#guess-card-modal .card-selection').html(content);
@@ -383,11 +388,9 @@ socket.on('getPrinceAction', function (data) {
 	
 	var content = '';
 	for (var i=0; i < players.length; i++) {
-		if (players[i].id != playerId) {
-			content += '<a class="btn btn-player" ';
-			content += 'data-player-id="' + players[i].id + '">' 
-			content += players[i].name + '</a>';
-		}
+		content += '<a class="btn btn-player" ';
+		content += 'data-player-id="' + players[i].id + '">' 
+		content += players[i].name + '</a>';
 	}
 	
 	$('#player-selection-modal .player-selection').html(content);

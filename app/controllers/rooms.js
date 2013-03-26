@@ -3,7 +3,8 @@ var Rooms = function () {
 
   this.index = function (req, resp, params) {
     var self = this;
-
+    var user = this.session.get('user');
+    
     geddy.model.Room.all(function(err, rooms) {
       self.respond({params: params, rooms: rooms});
     });

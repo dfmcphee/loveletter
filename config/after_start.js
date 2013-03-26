@@ -200,7 +200,7 @@ geddy.io.sockets.on('connection', function (socket) {
 			  		room.removePlayer(data.selectedPlayer, data.room);
 		  		} else {
 			  		// or just skip to the next turn
-			  		room.log('Cards tie, neither discards.');
+			  		room.log('Cards tie, play continues.');
 			  		room.nextTurn();
 		  		}
 	  		} else {

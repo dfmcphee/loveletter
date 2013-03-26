@@ -425,8 +425,8 @@ var Room = function () {
 		
 		this.save();
 		
-		this.log('Game ended.' + this.players[topPlayer] + ' wins.');
-		geddy.io.sockets.in(this.id).emit('endGame', { player: this.players[topPlayer] });
+		this.log('Game ended. ' + this.players[topPlayer].name + ' wins.');
+		geddy.io.sockets.in(this.id).emit('endGame', { player: this.players[topPlayer], creator: this.creator });
 	}
 	
 	this.log = function(message) {
