@@ -5,22 +5,24 @@
 
 <div id="rooms-list">
 <% if (rooms) { %>
-<% for (var i = 0, ii = rooms.length; i < ii; i++) { %>
-  <div class="row list-item" id="room-<%= rooms[i].id; %>">
-    <div class="span7">
-      <h3><%- linkTo(rooms[i].name, roomPath(rooms[i].id)); %></h3>
-    </div>
-    <div class="span5">
-      <p class="lead"><span><i class="icon icon-user"></i> <%= rooms[i].players.length; %>/4</span>
-      <% if (rooms[i].started) { %>
-      	<span class="label label-info">Started</span>
-      <% } else { %>
-      	<span class="label label-success">Open</span>
-      <% }%>
-      <% if (rooms[i].creator === user) { %>
-      </p>
-    </div>
-  </div>
-<% } %>
+	<% for (var i = 0, ii = rooms.length; i < ii; i++) { %>
+	  <div class="row list-item" id="room-<%= rooms[i].id; %>">
+	    <div class="span7">
+	      <h3><%- linkTo(rooms[i].name, roomPath(rooms[i].id)); %></h3>
+	    </div>
+	    <div class="span5">
+	      <p class="lead"><span><i class="icon icon-user"></i> <%= rooms[i].players.length; %>/4</span>
+	      <% if (rooms[i].started) { %>
+	      	<span class="label label-info">Started</span>
+	      <% } else { %>
+	      	<span class="label label-success">Open</span>
+	      <% }%>
+	      <% if (rooms[i].creator === user) { %>
+	      	<a href="/rooms/<%= rooms[i].id %>/edit/" class="btn btn-danger">Edit</a>
+	      <% } %>
+	      </p>
+	    </div>
+	  </div>
+	<% } %>
 <% } %>
 </div>

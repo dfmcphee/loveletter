@@ -6,7 +6,7 @@ var Rooms = function () {
     var user = this.session.get('user');
     
     geddy.model.Room.all(function(err, rooms) {
-      self.respond({params: params, rooms: rooms});
+      self.respond({params: params, rooms: rooms, user: user});
     });
   };
 

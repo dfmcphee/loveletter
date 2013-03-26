@@ -1,6 +1,6 @@
 {
   "name": "loveletter",
-  "version": "0.2.0-33",
+  "version": "0.2.0-37",
   "description": "A quick card game.",
   "main": "app.js",
   "scripts": {
